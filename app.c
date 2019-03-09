@@ -46,29 +46,34 @@ pPolynomial analysisTerm(char *in, int start, int end){
     int num = 0;
     double decimal = 0;
     double decimalMultiples = 1;
-    int flag = 0;
+    int decimalFlag = 0;    //切换小数
+    int numFlag = 1;            //切换幂
     for(int i = start; i < end; i++)
     {
         //切换到x的指数
         if ('x'==in[i]) {
             d->num = num+decimal;
+            if (0 == d->num && in[i-1] != '0') {
+                d->num = 1;
+            }            
             num = 0;
             decimal = 0;
             decimalMultiples = 1;
-            flag = 0;
-            continue;
-        }
-        //非法字符
-        if (('0'>in[i] || '9'<in[i]) && '.'!=in[i]) {
+            decimalFlag = 0;
+            numFlag = 0;
             continue;
         }
         //切换到小数
         if ('.' == in[i]) {
-            flag = 1;
+            decimalFlag = 1;
+            continue;
+        }
+        //非法字符
+        if ('0'>in[i] || '9'<in[i]) {
             continue;
         }
         //获得数值
-        if (flag) {
+        if (decimalFlag) {
             decimalMultiples/=10;
             decimal = decimal + (in[i]-'0')*decimalMultiples;
         }
@@ -77,12 +82,18 @@ pPolynomial analysisTerm(char *in, int start, int end){
             num = num*10 + in[i]-'0';
         }
     }
-    d->power = (num == 0) ? 1 : (num+decimal);
-
+    if (numFlag) {
+        d->num = num+decimal;
+        d->power = 0;
+    }
+    else
+    {
+        d->power = (num == 0) ? 1 : (num+decimal);  
+    }
     if ('-'==in[start]) {
         d->num *= -1;
     }
-    for(int i = end; i > start; i--)
+    for(int i = end-1; i >= start; i--)
     {
         if ('x' == in[i]) {
             break;
@@ -105,8 +116,12 @@ pList checkPolynoial(pList p){
     if (0 == ((pPolynomial)p->data)->num) {
         pList t = p->next;
         free(p);
-        p = p->next;
+        p = t;
     }
+    if (NULL == p) {
+        return NULL;
+    }    
+    pList t = p;
     while(NULL != p->next){
         if(0 == ((pPolynomial)p->next->data)->num){
             pList t = p->next;
@@ -115,7 +130,8 @@ pList checkPolynoial(pList p){
             free(t);
         }
         p = p->next;
-    }    
+    }   
+    return t; 
 }
 
 //排序
@@ -157,7 +173,7 @@ pList sortPolynoials(pList list, double (*compare)(pList a, pList b)){
             q->next = p;
         }        
     }
-    checkPolynoial(newList);
+    newList = checkPolynoial(newList);
     return newList;
 }
 
@@ -179,19 +195,9 @@ pList analysisPolynoials(char *in){
             if (start+1==i) {
                 flag = 0;
             }else{
-                int flag2 = 0;
-                for(int j = i; j > start; j--)
-                {
-                    if ('0' <= in[j] && '9'>= in[j]) {
-                        flag2 = 1;
-                    }
-                    if ('x' == in[j]) {
-                        if (flag2) {
-                            flag = 1;
-                        }
-                        break;
-                    }
-                }
+                if ('^'!= in[i-1] && '(' != in[i-1]) {
+                    flag = 1;
+                }                
             }
         }
         if(flag){
@@ -215,6 +221,7 @@ pList analysisPolynoials(char *in){
     pList t = list->next;
     list->next = NULL;
     free(list);
+    t = checkPolynoial(t);
     return t;
 }
 
@@ -249,7 +256,12 @@ void printPolynomial(pList polynomial){
         if (!(data->num < 0) && flag) {
             printf("+");
         }
-        printf("%g", data->num);
+        if (1 == data->num) {          
+        }else if (-1 == data->num){
+            printf("-");
+        }else{
+            printf("%g", data->num);  
+        }
         if (data->num != 0) {
             if (data->power == 1) {
                 printf("x");

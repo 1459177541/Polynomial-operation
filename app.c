@@ -32,7 +32,7 @@ char* input(){
             free(input);
             input = newInput;
             size = newSize;
-        }        
+        }
         input[i] = inChar;
         i++;
     }
@@ -91,8 +91,74 @@ pPolynomial analysisTerm(char *in, int start, int end){
             d->power *= -1;
             break;
         }
-    }    
+    }
     return d;
+}
+
+//比较
+double polynoialsCompare(pList a, pList b){
+    return ((pPolynomial)a->data)->power - ((pPolynomial)b->data)->power;
+}
+
+//检查
+pList checkPolynoial(pList p){
+    if (0 == ((pPolynomial)p->data)->num) {
+        pList t = p->next;
+        free(p);
+        p = p->next;
+    }
+    while(NULL != p->next){
+        if(0 == ((pPolynomial)p->next->data)->num){
+            pList t = p->next;
+            p->next = p->next->next;
+            t->next = NULL;
+            free(t);
+        }
+        p = p->next;
+    }    
+}
+
+//排序
+pList sortPolynoials(pList list, double (*compare)(pList a, pList b)){
+    pList newList = list;
+    list = list->next;
+    newList->next = NULL;
+    while(list!=NULL){
+        pList p = list;
+        list = list->next;
+        p->next = NULL;
+        if (compare(p, newList) < 0) {
+            p->next = newList;
+            newList = p;
+            continue;
+        }
+        if (compare(p, newList) == 0) {
+            ((pPolynomial)newList->data)->num += ((pPolynomial)p->data)->num;
+            free(p);
+            continue;
+        }
+        pList q = newList;
+        int flag = 0;
+        while(q->next != NULL){
+            if (compare(p, q->next) == 0) {
+                ((pPolynomial)q->next->data)->num += ((pPolynomial)p->data)->num;
+                free(p);
+                flag = 1;
+                break;                
+            }
+            if (compare(p, q->next) > 0) {
+                p->next = q->next;
+                q->next = p;
+                flag = 1;
+                break;
+            }            
+        }
+        if (!flag) {
+            q->next = p;
+        }        
+    }
+    checkPolynoial(newList);
+    return newList;
 }
 
 //解析表达式
@@ -124,10 +190,10 @@ pList analysisPolynoials(char *in){
                             flag = 1;
                         }
                         break;
-                    }                    
-                }                
+                    }
+                }
             }
-        }        
+        }
         if(flag){
             start = (start < 0) ? 0 :start;
             pList node = (pList)malloc(sizeof(list));
@@ -137,7 +203,7 @@ pList analysisPolynoials(char *in){
             start = i;
             p = p->next;
             flag = 0;
-        }      
+        }  
         i++;
     }
     start = (start < 0) ? 0 :start;
@@ -145,7 +211,7 @@ pList analysisPolynoials(char *in){
     p->next = node;
     node->data = analysisTerm(in, start, i);
     node->next = NULL;
-    
+
     pList t = list->next;
     list->next = NULL;
     free(list);
@@ -155,7 +221,7 @@ pList analysisPolynoials(char *in){
 //加法
 pList addition(){
 
-    
+
     return NULL;
 }
 
@@ -192,7 +258,7 @@ void printPolynomial(pList polynomial){
             }else if (data->power > 0) {
                 printf("x^%g", data->power);
             }
-        }        
+        }
         flag = 1;
         polynomial = polynomial->next;
     }
@@ -207,7 +273,7 @@ void menu(){
     printf("0.退出\n");
     printf("请输入您的选择:");
     char in = getchar();
-    while('\n'!=getchar()){}    
+    while('\n'!=getchar()){}
     pList result;
     switch (in)
     {
@@ -229,7 +295,7 @@ void menu(){
     }
     printPolynomial(result);
     printf("按回车键返回菜单\n");
-    while('\n'!=getchar()){}    
+    while('\n'!=getchar()){}
     menu();
 }
 

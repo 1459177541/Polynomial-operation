@@ -135,7 +135,7 @@ pList checkPolynoial(pList p){
 }
 
 //排序
-pList sortPolynoials(pList list, double (*compare)(pList a, pList b)){
+pList sort(pList list, double (*compare)(pList a, pList b)){
     pList newList = list;
     list = list->next;
     newList->next = NULL;
@@ -143,12 +143,13 @@ pList sortPolynoials(pList list, double (*compare)(pList a, pList b)){
         pList p = list;
         list = list->next;
         p->next = NULL;
-        if (compare(p, newList) < 0) {
+        double comp = compare(p, newList);
+        if (comp < 0) {
             p->next = newList;
             newList = p;
             continue;
         }
-        if (compare(p, newList) == 0) {
+        if (comp == 0) {
             ((pPolynomial)newList->data)->num += ((pPolynomial)p->data)->num;
             free(p);
             continue;
@@ -156,13 +157,14 @@ pList sortPolynoials(pList list, double (*compare)(pList a, pList b)){
         pList q = newList;
         int flag = 0;
         while(q->next != NULL){
-            if (compare(p, q->next) == 0) {
+            comp = compare(p, q->next);
+            if (comp == 0) {
                 ((pPolynomial)q->next->data)->num += ((pPolynomial)p->data)->num;
                 free(p);
                 flag = 1;
                 break;                
             }
-            if (compare(p, q->next) > 0) {
+            if (comp > 0) {
                 p->next = q->next;
                 q->next = p;
                 flag = 1;
@@ -225,11 +227,46 @@ pList analysisPolynoials(char *in){
     return t;
 }
 
+//输入多个表达式
+pList inputPolynoials(){
+    printf("请输入多个多项式，通过行分隔，直接输入回车结束\n");
+    char * in;
+    pList list = (pList)malloc(sizeof(list));
+    list->data = NULL;
+    list->next = NULL;
+    pList p = list;
+    while(1){
+        in = input();
+        if ('\0' == in[0]) {
+            break;
+        }
+        pList n = (pList)malloc(sizeof(list));
+        n->data = analysisPolynoials(in);
+        n->next = NULL;
+        p->next = n;
+        p = p->next;
+        free(in);
+        in = "";
+    }
+    pList t = list->next;
+    free(list);
+    return t;
+}
+
 //加法
 pList addition(){
-
-
-    return NULL;
+    pList list = inputPolynoials();
+    pList result = (pList)list->data;
+    pList p = result;
+    list = list->next;
+    while(list != NULL){
+        while(NULL != p->next){
+            p=p->next;
+        }
+        p->next = list->data;
+        list=list->next;
+    }    
+    return sort(result, polynoialsCompare);
 }
 
 //减法
@@ -305,6 +342,7 @@ void menu(){
             menu();
             return;
     }
+    printf("计算的结果为：\n");
     printPolynomial(result);
     printf("按回车键返回菜单\n");
     while('\n'!=getchar()){}

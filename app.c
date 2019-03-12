@@ -228,18 +228,20 @@ pList analysisPolynoials(char *in){
 }
 
 //输入多个表达式
-pList inputPolynoials(){
-    printf("请输入多个多项式，通过行分隔，直接输入回车结束\n");
+pList inputPolynoials(char * symbol){
+    printf("请输入多个多项式，通过行分隔，直接输入回车或者输入0结束\n");
     char * in;
     pList list = (pList)malloc(sizeof(list));
     list->data = NULL;
     list->next = NULL;
     pList p = list;
     while(1){
+        printf("\t");
         in = input();
-        if ('\0' == in[0]) {
+        if ('\0' == in[0] || ('0' == in[0] && '\0' == in[1])) {
             break;
         }
+        printf(symbol);
         pList n = (pList)malloc(sizeof(list));
         n->data = analysisPolynoials(in);
         n->next = NULL;
@@ -255,7 +257,7 @@ pList inputPolynoials(){
 
 //加法
 pList addition(){
-    pList list = inputPolynoials();
+    pList list = inputPolynoials("+");
     pList result = (pList)list->data;
     pList p = result;
     list = list->next;
@@ -342,7 +344,8 @@ void menu(){
             menu();
             return;
     }
-    printf("计算的结果为：\n");
+    printf("--------------------------------------------------------------\n");
+    printf("=\t");
     printPolynomial(result);
     printf("按回车键返回菜单\n");
     while('\n'!=getchar()){}

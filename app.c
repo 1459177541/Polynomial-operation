@@ -40,6 +40,42 @@ char* input(){
     return input;
 }
 
+//输出
+void printPolynomial(pList polynomial){
+    if (NULL == polynomial) {
+        printf("0\n");
+        return;
+    }
+    int flag = 0;
+    while(NULL != polynomial){
+        pPolynomial data = (pPolynomial)polynomial->data;
+        if (!(data->num < 0) && flag) {
+            printf("+");
+        }
+        if (1 == data->num) {          
+            if (0 == data->power) {
+                printf("1");
+            }            
+        }else if (-1 == data->num){
+            printf("-");
+        }else{
+            printf("%g", data->num);  
+        }
+        if (data->num != 0) {
+            if (data->power == 1) {
+                printf("x");
+            }else if (data->power < 0) {
+                printf("x^(%g)", data->power);
+            }else if (data->power > 0) {
+                printf("x^%g", data->power);
+            }
+        }
+        flag = 1;
+        polynomial = polynomial->next;
+    }
+    printf("\n");
+}
+
 //解析一个
 pPolynomial analysisTerm(char *in, int start, int end){
     pPolynomial d = (pPolynomial)malloc(sizeof(polynomial));
@@ -107,7 +143,7 @@ pPolynomial analysisTerm(char *in, int start, int end){
 }
 
 //比较
-double polynoialsCompare(pList a, pList b){
+double polynomialCompare(pList a, pList b){
     return ((pPolynomial)a->data)->power - ((pPolynomial)b->data)->power;
 }
 
@@ -170,6 +206,7 @@ pList sort(pList list, double (*compare)(pList a, pList b)){
                 flag = 1;
                 break;
             }            
+            q = q->next;
         }
         if (!flag) {
             q->next = p;
@@ -267,7 +304,7 @@ pList addition(pList list){
         p->next = list->data;
         list=list->next;
     }    
-    return sort(result, polynoialsCompare);
+    return sort(result, polynomialCompare);
 }
 
 //减法
@@ -286,7 +323,44 @@ pList subtraction(pList list){
         }
         list = list->next;
     }    
-    return sort(result, polynoialsCompare);
+    return sort(result, polynomialCompare);
+}
+
+//两个多项式相乘
+pList multiplicationBy2(pList poly1, pList poly2){
+    pList temp = (pList)malloc(sizeof(list));
+    pList tp = temp;
+    while(NULL != poly2){
+        int num = ((pPolynomial)poly2->data)->num;
+        int power = ((pPolynomial)poly2->data)->power;
+        pList tpp = (pList)malloc(sizeof(list));
+        pList tppp = tpp;
+        pList p1p = poly1;
+        while(NULL != p1p){
+            pPolynomial d = (pPolynomial)malloc(sizeof(polynomial));
+            d->num = num * ((pPolynomial)p1p->data)->num;
+            d->power = power + ((pPolynomial)p1p->data)->power;
+            pList tpppn = (pList)malloc(sizeof(list));
+            tpppn->data = d;
+            tpppn->next = NULL;
+            tppp->next = tpppn;
+            tppp = tppp->next;
+            p1p = p1p->next;
+        }
+        pList t = tpp;
+        tpp = tpp->next;
+        free(t);
+        pList tpn = (pList)malloc(sizeof(list));
+        tpn->data = tpp;
+        tpn->next = NULL;
+        tp->next = tpn;
+        tp = tp->next;
+        poly2 = poly2->next;
+    }
+    pList t = temp;
+    temp = temp->next;
+    free(t);
+    return sort(addition(temp), polynomialCompare);
 }
 
 //乘法
@@ -294,76 +368,10 @@ pList multiplication(pList list){
     pList result = (pList)list->data;
     list = list->next;
     while(NULL != list){
-        pList temp = (pList)malloc(sizeof(list));
-        pList tlt = temp;
-        pList lp = (pList)list->data;
-        while(NULL != lp){
-            int num = ((pPolynomial)lp->data)->num;
-            int power = ((pPolynomial)lp->data)->power;
-            pList tlp = (pList)malloc(sizeof(list));
-            pList tlpt = tlp;
-            pList rp = result;
-            while(NULL != rp){
-                pPolynomial d = (pPolynomial)malloc(sizeof(polynomial));
-                d->num = num * ((pPolynomial)rp->data)->num;
-                d->power = power + ((pPolynomial)rp->data)->power;
-                pList tlpn = (pList)malloc(sizeof(list));
-                tlpn->data = d;
-                tlpn->next = NULL;
-                tlpt->next = tlpn;
-                tlpt = tlpt->next;
-                rp = rp->next;
-            }
-            pList t = tlp;
-            tlp = tlp->next;
-            free(t);
-            pList tltn = (pList)malloc(sizeof(list));
-            tltn->data = tlp;
-            tltn->next = NULL;
-            tlt->next = tltn;
-            tlt = tlt->next;
-            lp = lp->next;
-        }
-        pList t = temp;
-        temp = temp->next;
-        free(t);
-        result = sort(addition(temp), polynoialsCompare);
+        result = multiplicationBy2(result, list->data);
         list = list->next;
     }    
     return result;
-}
-
-//输出
-void printPolynomial(pList polynomial){
-    if (NULL == polynomial) {
-        printf("0\n");
-        return;
-    }
-    int flag = 0;
-    while(NULL != polynomial){
-        pPolynomial data = (pPolynomial)polynomial->data;
-        if (!(data->num < 0) && flag) {
-            printf("+");
-        }
-        if (1 == data->num) {          
-        }else if (-1 == data->num){
-            printf("-");
-        }else{
-            printf("%g", data->num);  
-        }
-        if (data->num != 0) {
-            if (data->power == 1) {
-                printf("x");
-            }else if (data->power < 0) {
-                printf("x^(%g)", data->power);
-            }else if (data->power > 0) {
-                printf("x^%g", data->power);
-            }
-        }
-        flag = 1;
-        polynomial = polynomial->next;
-    }
-    printf("\n");
 }
 
 void menu(){

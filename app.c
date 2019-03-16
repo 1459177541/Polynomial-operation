@@ -228,8 +228,8 @@ pList analysisPolynoials(char *in){
 }
 
 //输入多个表达式
-pList inputPolynoials(char * symbol){
-    printf("请输入多个多项式，通过行分隔，直接输入回车或者输入0结束\n");
+pList inputPolynoials(char * symbol, char stop){
+    printf("请输入多个多项式，通过行分隔，直接输入回车或者输入%c结束\n", stop);
     char * in;
     pList list = (pList)malloc(sizeof(list));
     list->data = NULL;
@@ -238,7 +238,7 @@ pList inputPolynoials(char * symbol){
     while(1){
         printf("\t");
         in = input();
-        if ('\0' == in[0] || ('0' == in[0] && '\0' == in[1])) {
+        if ('\0' == in[0] || (stop == in[0] && '\0' == in[1])) {
             break;
         }
         printf(symbol);
@@ -256,12 +256,11 @@ pList inputPolynoials(char * symbol){
 }
 
 //加法
-pList addition(){
-    pList list = inputPolynoials("+");
+pList addition(pList list){
     pList result = (pList)list->data;
     pList p = result;
     list = list->next;
-    while(list != NULL){
+    while(NULL != list){
         while(NULL != p->next){
             p=p->next;
         }
@@ -272,15 +271,66 @@ pList addition(){
 }
 
 //减法
-pList subtraction(){
-
-    return NULL;
+pList subtraction(pList list){
+    pList result = (pList)list->data;
+    pList p = result;
+    while(NULL != p->next){
+        p = p->next;
+    }
+    list = list->next;
+    while(NULL != list){
+        p->next = list->data;
+        while(NULL != p->next){
+            p = p->next;
+            ((pPolynomial)p->data)->num *= -1;
+        }
+        list = list->next;
+    }    
+    return sort(result, polynoialsCompare);
 }
 
 //乘法
-pList multiplication(){
-
-    return NULL;
+pList multiplication(pList list){
+    pList result = (pList)list->data;
+    list = list->next;
+    while(NULL != list){
+        pList temp = (pList)malloc(sizeof(list));
+        pList tlt = temp;
+        pList lp = (pList)list->data;
+        while(NULL != lp){
+            int num = ((pPolynomial)lp->data)->num;
+            int power = ((pPolynomial)lp->data)->power;
+            pList tlp = (pList)malloc(sizeof(list));
+            pList tlpt = tlp;
+            pList rp = result;
+            while(NULL != rp){
+                pPolynomial d = (pPolynomial)malloc(sizeof(polynomial));
+                d->num = num * ((pPolynomial)rp->data)->num;
+                d->power = power + ((pPolynomial)rp->data)->power;
+                pList tlpn = (pList)malloc(sizeof(list));
+                tlpn->data = d;
+                tlpn->next = NULL;
+                tlpt->next = tlpn;
+                tlpt = tlpt->next;
+                rp = rp->next;
+            }
+            pList t = tlp;
+            tlp = tlp->next;
+            free(t);
+            pList tltn = (pList)malloc(sizeof(list));
+            tltn->data = tlp;
+            tltn->next = NULL;
+            tlt->next = tltn;
+            tlt = tlt->next;
+            lp = lp->next;
+        }
+        pList t = temp;
+        temp = temp->next;
+        free(t);
+        result = sort(addition(temp), polynoialsCompare);
+        list = list->next;
+    }    
+    return result;
 }
 
 //输出
@@ -326,16 +376,20 @@ void menu(){
     char in = getchar();
     while('\n'!=getchar()){}
     pList result;
+    pList list;
     switch (in)
     {
         case '1':
-            result = addition();
+            list = inputPolynoials("+", '0');
+            result = addition(list);
             break;
         case '2':
-            result = subtraction();
+            list = inputPolynoials("-", '0');
+            result = subtraction(list);
             break;
         case '3':
-            result = multiplication();
+            list = inputPolynoials("*", '1');
+            result = multiplication(list);
             break;
         case '0':
             return;
@@ -347,6 +401,11 @@ void menu(){
     printf("--------------------------------------------------------------\n");
     printf("=\t");
     printPolynomial(result);
+    while(NULL != list){
+        pList p = list;
+        list = list->next;
+        free(p);
+    }    
     printf("按回车键返回菜单\n");
     while('\n'!=getchar()){}
     menu();

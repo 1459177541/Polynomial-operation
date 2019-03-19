@@ -173,6 +173,9 @@ pList checkPolynoial(pList p){
 
 //排序
 pList sortPolynomial(pList list){
+    if (NULL == list) {
+        return NULL;
+    }    
     pList newList = list;
     list = list->next;
     newList->next = NULL;
@@ -201,7 +204,7 @@ pList sortPolynomial(pList list){
                 flag = 1;
                 break;                
             }
-            if (comp > 0) {
+            if (comp < 0 && polynomialCompare(p,q) > 0) {
                 p->next = q->next;
                 q->next = p;
                 flag = 1;
@@ -265,6 +268,42 @@ pList analysisPolynoials(char *in){
     return t;
 }
 
+//通过文件输入
+pList inputByFile(char * symbol, char stop){
+    printf("请输入文件名：");
+    char* fileName = (char*)malloc(80*sizeof(char));
+    scanf("%s", fileName);
+    FILE *f = fopen(fileName, "r");
+    free(fileName);
+    char* buffer = (char*)malloc(120*sizeof(char));
+    pList list = (pList)malloc(sizeof(list));
+    list->data = NULL;
+    list->next = NULL;
+    pList p = list;
+    while(1){
+        if (feof(f)) {
+            break;
+        }        
+        fscanf(f, "%s", buffer);
+        printf("\t%s\n", buffer);
+        if ('\0' == buffer[0] || (stop == buffer[0] && '\0' == buffer[1])) {
+            break;
+        }
+        printf(symbol);
+        pList n = (pList)malloc(sizeof(list));
+        n->data = analysisPolynoials(buffer);
+        n->next = NULL;
+        p->next = n;
+        p = p->next;
+        buffer[0] = '\0';
+    }
+    fclose(f);
+    free(buffer);
+    pList t = list->next;
+    free(list);
+    return t;
+}
+
 //输入多个表达式
 pList inputPolynoials(char * symbol, char stop){
     printf("请输入多个多项式，通过行分隔，直接输入回车或者输入%c结束\n", stop);
@@ -295,6 +334,9 @@ pList inputPolynoials(char * symbol, char stop){
 
 //加法
 pList addition(pList list){
+    if (NULL == list) {
+        return NULL;
+    }    
     pList result = (pList)list->data;
     pList p = result;
     list = list->next;
@@ -310,6 +352,9 @@ pList addition(pList list){
 
 //减法
 pList subtraction(pList list){
+    if (NULL == list) {
+        return NULL;
+    }    
     pList result = (pList)list->data;
     pList p = result;
     while(NULL != p->next){
@@ -366,6 +411,9 @@ pList multiplicationBy2(pList poly1, pList poly2){
 
 //乘法
 pList multiplication(pList list){
+    if (NULL == list) {
+        return NULL;
+    }    
     pList result = (pList)list->data;
     list = list->next;
     while(NULL != list){
@@ -377,9 +425,12 @@ pList multiplication(pList list){
 
 void menu(){
     printf(" ----菜单----\n");
-    printf("1.多项式相加\n");
-    printf("2.多项式相减\n");
-    printf("3.多项式相乘\n");
+    printf("1.多项式相加(输入)\n");
+    printf("2.多项式相减(输入)\n");
+    printf("3.多项式相乘(输入)\n");
+    printf("4.多项式相加(文件)\n");
+    printf("5.多项式相减(文件)\n");
+    printf("6.多项式相乘(文件)\n");
     printf("0.退出\n");
     printf("请输入您的选择:");
     char in = getchar();
@@ -398,6 +449,18 @@ void menu(){
             break;
         case '3':
             list = inputPolynoials("*", '1');
+            result = multiplication(list);
+            break;
+        case '4':
+            list = inputByFile("+", '0');
+            result = addition(list);
+            break;
+        case '5':
+            list = inputByFile("-", '0');
+            result = subtraction(list);
+            break;
+        case '6':
+            list = inputByFile("*", '1');
             result = multiplication(list);
             break;
         case '0':

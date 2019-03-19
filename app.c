@@ -149,14 +149,14 @@ double polynomialCompare(pList a, pList b){
 
 //检查
 pList checkPolynoial(pList p){
-    if (0 == ((pPolynomial)p->data)->num) {
+    while (0 == ((pPolynomial)p->data)->num) {
         pList t = p->next;
         free(p);
         p = t;
+        if (NULL == p) {
+            return NULL;
+        }    
     }
-    if (NULL == p) {
-        return NULL;
-    }    
     pList t = p;
     while(NULL != p->next){
         if(0 == ((pPolynomial)p->next->data)->num){
@@ -164,6 +164,7 @@ pList checkPolynoial(pList p){
             p->next = p->next->next;
             t->next = NULL;
             free(t);
+            continue;
         }
         p = p->next;
     }   
@@ -171,7 +172,7 @@ pList checkPolynoial(pList p){
 }
 
 //排序
-pList sort(pList list, double (*compare)(pList a, pList b)){
+pList sortPolynomial(pList list){
     pList newList = list;
     list = list->next;
     newList->next = NULL;
@@ -179,7 +180,7 @@ pList sort(pList list, double (*compare)(pList a, pList b)){
         pList p = list;
         list = list->next;
         p->next = NULL;
-        double comp = compare(p, newList);
+        double comp = polynomialCompare(p, newList);
         if (comp < 0) {
             p->next = newList;
             newList = p;
@@ -193,7 +194,7 @@ pList sort(pList list, double (*compare)(pList a, pList b)){
         pList q = newList;
         int flag = 0;
         while(q->next != NULL){
-            comp = compare(p, q->next);
+            comp = polynomialCompare(p, q->next);
             if (comp == 0) {
                 ((pPolynomial)q->next->data)->num += ((pPolynomial)p->data)->num;
                 free(p);
@@ -304,7 +305,7 @@ pList addition(pList list){
         p->next = list->data;
         list=list->next;
     }    
-    return sort(result, polynomialCompare);
+    return sortPolynomial(result);
 }
 
 //减法
@@ -323,7 +324,7 @@ pList subtraction(pList list){
         }
         list = list->next;
     }    
-    return sort(result, polynomialCompare);
+    return sortPolynomial(result);
 }
 
 //两个多项式相乘
@@ -360,7 +361,7 @@ pList multiplicationBy2(pList poly1, pList poly2){
     pList t = temp;
     temp = temp->next;
     free(t);
-    return sort(addition(temp), polynomialCompare);
+    return sortPolynomial(addition(temp));
 }
 
 //乘法

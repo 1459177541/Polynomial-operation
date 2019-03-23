@@ -3,18 +3,27 @@
  **/
 #include<stdio.h>
 #include<malloc.h>
+/**
+ * 多项式
+ * */
 typedef struct polynomial
 {
     double num;
     double power;
 }polynomial, *pPolynomial;
+/**
+ * 链表
+ * */
 typedef struct list
 {
     void *data;
     struct list *next;
 }list, *pList;
 
-//输入
+/**
+ * 从屏幕输入（一行）
+ * return：输入的结果
+ * */
 char* input(){
     int size = 32;
     int i = 0;
@@ -40,7 +49,10 @@ char* input(){
     return input;
 }
 
-//输出
+/**
+ * 输出表达式
+ * polynomial ： 输出的多项式，data数据为polynomial
+ * */
 void printPolynomial(pList polynomial){
     if (NULL == polynomial) {
         printf("0\n");
@@ -52,11 +64,9 @@ void printPolynomial(pList polynomial){
         if (!(data->num < 0) && flag) {
             printf("+");
         }
-        if (1 == data->num) {          
-            if (0 == data->power) {
-                printf("1");
-            }            
-        }else if (-1 == data->num){
+        if (1 == data->num && 0 == data->power) {          
+            printf("1");
+        }else if (-1 == data->num && 0 != data->power){
             printf("-");
         }else{
             printf("%g", data->num);  
@@ -76,7 +86,15 @@ void printPolynomial(pList polynomial){
     printf("\n");
 }
 
-//解析一个
+/**
+ * 解析一个
+ * 可解析以下格式多项式：
+ *      3x^5,-3x,0.3x^(-5),5,...
+ * in : 字符串
+ * start ： 开始的偏移量
+ * end ： 结束的偏移量
+ * return：解析结果
+ * */
 pPolynomial analysisTerm(char *in, int start, int end){
     pPolynomial d = (pPolynomial)malloc(sizeof(polynomial));
     int num = 0;
@@ -113,24 +131,24 @@ pPolynomial analysisTerm(char *in, int start, int end){
             decimalMultiples/=10;
             decimal = decimal + (in[i]-'0')*decimalMultiples;
         }
-        else
-        {
+        else{
             num = num*10 + in[i]-'0';
         }
     }
+    //是否输入x的指数
     if (numFlag) {
         d->num = num+decimal;
         d->power = 0;
     }
-    else
-    {
+    else{
         d->power = (num == 0) ? 1 : (num+decimal);  
     }
+    //设置系数的符号
     if ('-'==in[start]) {
         d->num *= -1;
     }
-    for(int i = end-1; i >= start; i--)
-    {
+    //设置x的指数的符号
+    for(int i = end-1; i >= start; i--){
         if ('x' == in[i]) {
             break;
         }
@@ -142,12 +160,21 @@ pPolynomial analysisTerm(char *in, int start, int end){
     return d;
 }
 
-//比较
+/**
+ * 多项式比较
+ * a ： 比较的第一个多项式
+ * b ： 比较的第二个多项式
+ * return：a>b:返回一个正数;a=b：返回0;a<b：返回一个负数
+ * */
 double polynomialCompare(pList a, pList b){
     return ((pPolynomial)a->data)->power - ((pPolynomial)b->data)->power;
 }
 
-//检查
+/**
+ * 检查多项式，并将num为0的多项式移除
+ * p ： 待检查的多项式，data的类型为polynomial
+ * return：检查后的结果，data的类型为polynomial
+ * */
 pList checkPolynoial(pList p){
     while (0 == ((pPolynomial)p->data)->num) {
         pList t = p->next;
@@ -171,7 +198,11 @@ pList checkPolynoial(pList p){
     return t; 
 }
 
-//排序
+/**
+ * 使用插入排序将多项式按power排序，并将power相等的多项式进行合并
+ * list：排序前的多项式，data的类型为polynomial
+ * return： 排序结果，data的类型为polynomial
+ * */
 pList sortPolynomial(pList list){
     if (NULL == list) {
         return NULL;
@@ -220,7 +251,10 @@ pList sortPolynomial(pList list){
     return newList;
 }
 
-//解析表达式
+/**
+ * 解析一行多项式，每行多项式为单个多项式相通过加减运算获得
+ * return：解析的结果，data类型为polynomial
+ * */
 pList analysisPolynoials(char *in){
     pList list = (pList)malloc(sizeof(pList));
     list->data = NULL;
@@ -268,7 +302,12 @@ pList analysisPolynoials(char *in){
     return t;
 }
 
-//通过文件输入
+/**
+ * 从文件获取表达式
+ * symbol：显示符号
+ * stop：输入终止符
+ * return：输入的结果，data类型为list
+ * */
 pList inputByFile(char * symbol, char stop){
     printf("请输入文件名：");
     char* fileName = (char*)malloc(80*sizeof(char));
@@ -304,7 +343,12 @@ pList inputByFile(char * symbol, char stop){
     return t;
 }
 
-//输入多个表达式
+/**
+ * 从屏幕获取表达式
+ * symbol：显示符号
+ * stop：输入终止符
+ * return：输入的结果，data类型为list
+ * */
 pList inputPolynoials(char * symbol, char stop){
     printf("请输入多个多项式，通过行分隔，直接输入回车或者输入%c结束\n", stop);
     char * in;
@@ -332,7 +376,11 @@ pList inputPolynoials(char * symbol, char stop){
     return t;
 }
 
-//加法
+/**
+ * 多项式的加法
+ * list：每行多项式的链表，data数据为多项式list
+ * return：计算结果，data类型为polynomial
+ * */
 pList addition(pList list){
     if (NULL == list) {
         return NULL;
@@ -350,7 +398,11 @@ pList addition(pList list){
     return sortPolynomial(result);
 }
 
-//减法
+/**
+ * 多项式的减法
+ * list：每行多项式的链表，data类型为list
+ * return：计算结果，data类型为polynomial
+ * */
 pList subtraction(pList list){
     if (NULL == list) {
         return NULL;
@@ -372,7 +424,12 @@ pList subtraction(pList list){
     return sortPolynomial(result);
 }
 
-//两个多项式相乘
+/**
+ * 两个多项式相乘
+ * poly1：第一个多项式
+ * poly2：第二个多项式
+ * return：计算结果，data类型为polynomial
+ * */
 pList multiplicationBy2(pList poly1, pList poly2){
     pList temp = (pList)malloc(sizeof(list));
     pList tp = temp;
@@ -409,7 +466,11 @@ pList multiplicationBy2(pList poly1, pList poly2){
     return sortPolynomial(addition(temp));
 }
 
-//乘法
+/**
+ * 多项式的乘法
+ * list：每行多项式的链表，data的类型为list
+ * return：计算结果，data类型为polynomial
+ * */
 pList multiplication(pList list){
     if (NULL == list) {
         return NULL;
@@ -423,6 +484,9 @@ pList multiplication(pList list){
     return result;
 }
 
+/**
+ * 菜单
+ * */
 void menu(){
     printf(" ----菜单----\n");
     printf("1.多项式相加(输入)\n");
@@ -437,8 +501,7 @@ void menu(){
     while('\n'!=getchar()){}
     pList result;
     pList list;
-    switch (in)
-    {
+    switch (in){
         case '1':
             list = inputPolynoials("+", '0');
             result = addition(list);
@@ -483,6 +546,9 @@ void menu(){
     menu();
 }
 
+/**
+ * 主方法
+ * */
 int main(){
     menu();
     printf("感谢使用!\n");

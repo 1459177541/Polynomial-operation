@@ -386,6 +386,13 @@ pList addition(pList list){
         return NULL;
     }    
     pList result = (pList)list->data;
+    while(NULL == result){
+        list = list->next;
+        if(NULL == list){
+            return NULL;
+        }
+        result = (pList)list->data;
+    }
     pList p = result;
     list = list->next;
     while(NULL != list){
@@ -408,6 +415,13 @@ pList subtraction(pList list){
         return NULL;
     }    
     pList result = (pList)list->data;
+    while(NULL == result){
+        list = list->next;
+        if(NULL == list){
+            return NULL;
+        }
+        result = (pList)list->data;
+    }
     pList p = result;
     while(NULL != p->next){
         p = p->next;
